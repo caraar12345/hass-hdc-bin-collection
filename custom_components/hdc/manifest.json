@@ -1,0 +1,17 @@
+{
+  "domain": "hdc",
+  "name": "hdc_bin_collection",
+  "codeowners": [
+    "@caraar12345"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/hdc",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "requirements": [
+    "hdc-bin-collection==0.6.1"
+  ],
+  "ssdp": [],
+  "zeroconf": []
+}

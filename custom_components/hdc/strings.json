@@ -1,0 +1,19 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Harborough District Council bin collections",
+        "description": "Find your UPRN on findmyaddress.co.uk",
+        "data": {
+          "uprn": "UPRN"
+        },
+        "data_description": {
+          "uprn": "Unique Place Reference Number"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Integration already configured for that address"
+    }
+  }
+}
