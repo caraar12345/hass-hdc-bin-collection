@@ -14,9 +14,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up bin collection date sensors from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, PLATFORM)
-    )
+    await hass.config_entries.async_forward_entry_setups(entry, [PLATFORM])
     return True
 
 
