@@ -1,9 +1,9 @@
 """Support for bins and their collection dates from FCC/HDC API."""
+import asyncio
 from datetime import timedelta
 import logging
 
 from hdc_bin_collection import collect_data
-import async_timeout
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -36,7 +36,7 @@ async def async_setup_entry(
 
     async def async_update_data():
         # DataUpdateCoordinator will handle aiohttp ClientErrors and timeouts
-        async with async_timeout.timeout(30):
+        async with asyncio.timeout(30):
             data = await collect_data(session=session, uprn=uprn)
 
         bins = {}
@@ -58,7 +58,7 @@ async def async_setup_entry(
 
     # Create entities once based on the initial data
     entities = [
-        Measurement(coordinator, str(uprn) + "_" + bin_type + "_bin", uprn, bin_type)
+        Measurement(coordinator, uprn, bin_type)
         for bin_type in coordinator.data
     ]
     async_add_entities(entities)
@@ -71,45 +71,23 @@ class Measurement(CoordinatorEntity, SensorEntity):
         "This uses data from FCC Environment and Harborough District Council"
     )
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_icon = "mdi:trash-can"
 
-    def __init__(self, coordinator, key, uprn, bin_type):
+    def __init__(self, coordinator, uprn, bin_type):
         """Initialise the sensor with a bin type."""
         super().__init__(coordinator)
-        self.key = key
-        self._attr_unique_id = key
-        self.uprn = uprn
+        self._attr_unique_id = f"{uprn}_{bin_type}_bin"
+        self._attr_name = f"{bin_type.title()} bin"
         self.bin_type = bin_type
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return DeviceInfo(
+        self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, "uprn_and_bin", self.key)},
+            identifiers={(DOMAIN, str(uprn))},
             manufacturer="Harborough District Council",
-            model=self.bin_type.title(),
-            name=self.name,
+            name="Bin collection",
             suggested_area="Outside",
         )
-
-    @property
-    def name(self):
-        return f"{self.bin_type.title()} bin - {self.uprn}"
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        if not self.coordinator.last_update_success:
-            return False
-
-        return True
 
     @property
     def native_value(self):
         """Return the current sensor value."""
         return self.coordinator.data[self.bin_type]
-
-    @property
-    def icon(self):
-        """Set the icon to a bin rather than the default clock."""
-        return "mdi:trash-can"
