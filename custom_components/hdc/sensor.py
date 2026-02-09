@@ -72,6 +72,7 @@ class Measurement(CoordinatorEntity, SensorEntity):
     )
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_icon = "mdi:trash-can"
+    _attr_has_entity_name = True
 
     def __init__(self, coordinator, uprn, bin_type):
         """Initialise the sensor with a bin type."""
