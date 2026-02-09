@@ -39,22 +39,9 @@ async def async_setup_entry(
         async with async_timeout.timeout(30):
             data = await collect_data(session=session, uprn=uprn)
 
-        entities = []
         bins = {}
-
         for bin_collection in data:
-            entities.append(
-                Measurement(
-                    hass.data[DOMAIN][uprn],
-                    str(uprn) + "_" + bin_collection["bin_type"] + "_bin",
-                    uprn,
-                    bin_collection["bin_type"],
-                )
-            )
-
             bins[bin_collection["bin_type"]] = bin_collection["collection_timestamp"]
-
-        async_add_entities(entities)
 
         return bins
 
@@ -67,7 +54,14 @@ async def async_setup_entry(
     )
 
     # Fetch initial data so we have data when entities subscribe
-    await coordinator.async_refresh()
+    await coordinator.async_config_entry_first_refresh()
+
+    # Create entities once based on the initial data
+    entities = [
+        Measurement(coordinator, str(uprn) + "_" + bin_type + "_bin", uprn, bin_type)
+        for bin_type in coordinator.data
+    ]
+    async_add_entities(entities)
 
 
 class Measurement(CoordinatorEntity, SensorEntity):
