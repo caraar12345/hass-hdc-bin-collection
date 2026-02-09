@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import voluptuous as vol
 
@@ -43,8 +42,10 @@ async def validate_input(session, data: dict[str, int]) -> dict[str, int]:
     if uprn_verification[1].startswith("connection_error"):
         raise CannotConnect
 
-    if uprn_verification[0]:
-        return {"title": "Bin collections at UPRN " + str(data["uprn"])}
+    if not uprn_verification[0]:
+        raise InvalidAuth
+
+    return {"title": "Bin collections at UPRN " + str(data["uprn"])}
 
 
 class HdcConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -81,13 +82,6 @@ class HdcConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=STEP_UPRN_SCHEMA, errors=errors
         )
-
-
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handles options flow for the component."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
 
 
 class CannotConnect(HomeAssistantError):
