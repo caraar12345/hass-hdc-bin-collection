@@ -90,4 +90,4 @@ class Measurement(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the current sensor value."""
-        return self.coordinator.data[self.bin_type]
+        return self.coordinator.data.get(self.bin_type)
