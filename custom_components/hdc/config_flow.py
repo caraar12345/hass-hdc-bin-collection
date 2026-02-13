@@ -33,8 +33,10 @@ class HdcBinCollection:
 
 
 async def validate_input(session, data: dict[str, int]) -> dict[str, int]:
+    _LOGGER.debug("Validating UPRN %s", data["uprn"])
     hdc = HdcBinCollection(session=session, uprn=data["uprn"])
     uprn_verification = await hdc.hdc_verify_uprn()
+    _LOGGER.debug("UPRN verification result: %s", uprn_verification)
 
     if uprn_verification[1] == "invalid_uprn":
         raise InvalidAuth
@@ -61,6 +63,7 @@ class HdcConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         session = async_get_clientsession(hass=self.hass)
 
         if user_input is not None:
+            _LOGGER.debug("Config flow received user input: %s", user_input)
             await self.async_set_unique_id("hdc_bins_" + str(user_input["uprn"]))
             self._abort_if_unique_id_configured()
 
