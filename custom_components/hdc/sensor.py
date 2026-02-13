@@ -33,16 +33,21 @@ async def async_setup_entry(
     """Set up Bin Collection Sensors."""
     uprn = config_entry.data["uprn"]
     session = async_get_clientsession(hass=hass)
+    _LOGGER.debug("Setting up sensor platform for UPRN %s", uprn)
 
     async def async_update_data():
         # DataUpdateCoordinator will handle aiohttp ClientErrors and timeouts
+        _LOGGER.debug("Fetching bin collection data for UPRN %s", uprn)
         async with asyncio.timeout(30):
             data = await collect_data(session=session, uprn=uprn)
+
+        _LOGGER.debug("Received %d bin collection(s) for UPRN %s", len(data), uprn)
 
         bins = {}
         for bin_collection in data:
             bins[bin_collection["bin_type"]] = bin_collection["collection_timestamp"]
 
+        _LOGGER.debug("Parsed bin data for UPRN %s: %s", uprn, bins)
         return bins
 
     hass.data[DOMAIN][uprn] = coordinator = DataUpdateCoordinator(
@@ -54,14 +59,17 @@ async def async_setup_entry(
     )
 
     # Fetch initial data so we have data when entities subscribe
+    _LOGGER.debug("Performing first data refresh for UPRN %s", uprn)
     await coordinator.async_config_entry_first_refresh()
 
     # Create entities once based on the initial data
+    _LOGGER.debug("Creating %d sensor entities for UPRN %s: %s", len(coordinator.data), uprn, list(coordinator.data.keys()))
     entities = [
         Measurement(coordinator, uprn, bin_type)
         for bin_type in coordinator.data
     ]
     async_add_entities(entities)
+    _LOGGER.debug("Sensor platform setup complete for UPRN %s", uprn)
 
 
 class Measurement(CoordinatorEntity, SensorEntity):
